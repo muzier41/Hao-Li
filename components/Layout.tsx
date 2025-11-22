@@ -13,8 +13,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
     <div className="flex flex-col h-[100dvh] w-full bg-[#F2F2F7] text-gray-900 font-sans overflow-hidden pt-safe">
       
       {/* Main Content Area */}
-      <main className="flex-1 w-full h-full overflow-y-auto overflow-x-hidden scroll-smooth pb-24">
-        <div className="p-4 md:p-6 max-w-3xl mx-auto min-h-full">
+      {/* Added min-h-0 to fix flex child scrolling issue on some browsers */}
+      {/* Increased pb to pb-32 to ensure bottom content is visible above nav */}
+      <main className="flex-1 w-full overflow-y-auto overflow-x-hidden scroll-smooth pb-32 min-h-0">
+        <div className="p-4 md:p-6 max-w-3xl mx-auto">
           {children}
         </div>
       </main>

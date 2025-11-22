@@ -78,7 +78,16 @@ const App: React.FC = () => {
       }
 
       setApplications(appsData as Application[]);
-      setEvents(eventsData as JobEvent[]);
+      
+      // Robust mapping for events to handle snake_case (DB) <-> camelCase (Frontend)
+      const formattedEvents = (eventsData || []).map((e: any) => ({
+          ...e,
+          // Handle potential column name differences
+          applicationId: e.application_id || e.applicationId,
+          isCompleted: e.is_completed || e.isCompleted
+      }));
+      setEvents(formattedEvents as JobEvent[]);
+      
       setIsLoading(false);
   };
 
@@ -166,28 +175,36 @@ const App: React.FC = () => {
     }
 
     // SAVE EVENTS
-    // Simple sync: Delete old, insert new
     if (savedAppId) {
-        await supabase.from('events').delete().eq('applicationId', savedAppId);
+        // Delete existing events for this app using standard snake_case column
+        // Try deleting by both potential keys to be safe
+        await supabase.from('events').delete().or(`application_id.eq.${savedAppId},applicationId.eq.${savedAppId}`);
         
         if (newEvents.length > 0) {
             const eventsToInsert = newEvents.map(e => ({
                 user_id: userId,
-                applicationId: savedAppId,
+                application_id: savedAppId, // Store as snake_case
                 title: e.title,
                 type: e.type,
                 start: e.start,
                 end: e.end,
-                isCompleted: e.isCompleted || false
+                is_completed: e.isCompleted || false // Store as snake_case
             }));
             
             const { data: savedEvents, error: eventError } = await supabase.from('events').insert(eventsToInsert).select();
-            if (eventError) console.error(eventError);
+            if (eventError) console.error("Event save error:", eventError);
 
             if (savedEvents) {
+                // Map back to frontend model
+                const mappedSavedEvents = savedEvents.map((e: any) => ({
+                    ...e,
+                    applicationId: e.application_id || e.applicationId,
+                    isCompleted: e.is_completed || e.isCompleted
+                }));
+
                 setEvents(prev => [
                     ...prev.filter(e => e.applicationId !== savedAppId),
-                    ...(savedEvents as JobEvent[])
+                    ...(mappedSavedEvents as JobEvent[])
                 ]);
             }
         } else {
@@ -202,22 +219,25 @@ const App: React.FC = () => {
   const handleEventUpdate = async (updatedEvent: JobEvent) => {
       if (!supabase) return;
       
-      // Optimistic update
+      // Optimistic update for UI
       setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
 
+      // Map frontend 'isCompleted' to DB 'is_completed'
       const { error } = await supabase
         .from('events')
         .update({
             start: updatedEvent.start,
             end: updatedEvent.end,
-            isCompleted: updatedEvent.isCompleted ?? false
+            is_completed: updatedEvent.isCompleted
         })
         .eq('id', updatedEvent.id);
 
       if (error) {
           console.error("Event update failed:", error);
-          alert("更新事件失败: " + error.message);
-          // Revert
+          // Provide meaningful error message
+          alert("更新事件失败: " + (error.message || JSON.stringify(error)));
+          
+          // Revert on error
           setEvents(prev => prev.map(e => e.id === updatedEvent.id ? events.find(ev => ev.id === updatedEvent.id)! : e));
       }
   };
