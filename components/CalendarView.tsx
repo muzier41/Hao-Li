@@ -1,9 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO, isWithinInterval } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { JobEvent, EventType, Application } from '../types';
 import { EVENT_TYPE_COLORS, EVENT_TYPE_LABELS_CN } from '../constants';
+import { 
+  format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, 
+  eachDayOfInterval, isSameMonth, isSameDay, addMonths, 
+  subMonths, parseISO, isWithinInterval 
+} from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 
 interface CalendarViewProps {
   events: JobEvent[];

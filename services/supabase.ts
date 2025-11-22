@@ -1,17 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
-// 您可以将配置直接填在这里，或者配置在 .env 文件中 (VITE_SUPABASE_URL / VITE_SUPABASE_KEY)
-// You can paste your config directly here, or use .env files.
-const PROJECT_URL = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL_HERE'; 
-const ANON_KEY = process.env.SUPABASE_KEY || 'YOUR_SUPABASE_ANON_KEY_HERE';
+const PROJECT_URL = 'https://nccoipogzqgtawcjkbgg.supabase.co'; 
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jY29pcG9nenFndGF3Y2prYmdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3Nzc2OTIsImV4cCI6MjA3OTM1MzY5Mn0.55tzsaFQwpqiOPQtyyN2VkAx9ghwfxpHKqLLubKQKzo';
 
-export const supabase = (PROJECT_URL && ANON_KEY && PROJECT_URL !== 'YOUR_SUPABASE_URL_HERE')
-  ? createClient(PROJECT_URL, ANON_KEY) 
-  : null;
+// Initialize the client directly with the hardcoded credentials
+export const supabase = createClient(PROJECT_URL, ANON_KEY);
 
-export const isSupabaseConfigured = () => !!supabase;
-
-// Helper to debug if needed
-if (!supabase) {
-  console.warn('Supabase is not configured. Please set SUPABASE_URL and SUPABASE_KEY in services/supabase.ts or .env file.');
-}
+export const isSupabaseConfigured = () => true;
