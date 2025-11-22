@@ -3,25 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    
-    <!-- PWA & iOS Configuration -->
     <title>CareerTrack - 秋招助手</title>
     <link rel="manifest" href="/manifest.json">
-    
-    <!-- iOS specific meta tags for App-like feel -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="秋招助手">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3076/3076114.png">
-
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
-              sans: ['-apple-system', 'BlinkMacSystemFont', 'PingFang SC', 'Hiragino Sans GB', 'Inter', 'Microsoft YaHei', 'sans-serif'],
+              sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'sans-serif'],
             },
             colors: {
               apple: {
@@ -38,12 +33,12 @@
             },
             boxShadow: {
               'glass': '0 8px 32px rgba(0, 0, 0, 0.08)',
-              'ios': '0 4px 20px rgba(0, 0, 0, 0.04)',
+              'ios': '0 20px 40px -12px rgba(0, 0, 0, 0.1)',
               'nav': '0 -4px 20px rgba(0, 0, 0, 0.03)',
             },
             animation: {
               'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-              'scale-in': 'scaleIn 0.2s ease-out',
+              'scale-in': 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
               'fade-in': 'fadeIn 0.3s ease-out',
             },
             keyframes: {
@@ -67,69 +62,46 @@
     <style>
       body {
         background-color: #F2F2F7;
-        color: #000000;
+        color: #1C1C1E;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        overflow: hidden; /* App-like behavior */
-        overscroll-behavior-y: none; /* Prevent bounce effect on body */
+        overflow: hidden;
       }
-      /* Custom Scrollbar - Minimalist */
       ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      ::-webkit-scrollbar-track {
+        width: 0px;
         background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: rgba(0,0,0,0.1);
-        border-radius: 3px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: rgba(0,0,0,0.2);
       }
       .glass-panel {
         background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border-top: 0.5px solid rgba(0, 0, 0, 0.05);
+        border-top: 0.5px solid rgba(0, 0, 0, 0.1);
       }
-      .ios-card {
-        background: #FFFFFF;
-        border-radius: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-      }
-      .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-      /* Safe area padding for notched iPhones */
       .pb-safe {
         padding-bottom: env(safe-area-inset-bottom);
       }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "uuid": "https://aistudiocdn.com/uuid@^13.0.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.4.1",
-    "date-fns/locale": "https://aistudiocdn.com/date-fns@^4.1.0/locale",
-    "date-fns/": "https://aistudiocdn.com/date-fns@^4.1.0/",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
-  }
-}
-</script>
-</head>
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+        "react/": "https://aistudiocdn.com/react@^19.2.0/",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+        "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+        "recharts": "https://aistudiocdn.com/recharts@^3.4.1",
+        "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0",
+        "date-fns/": "https://aistudiocdn.com/date-fns@^4.1.0/",
+        "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.84.0",
+        "vite": "https://aistudiocdn.com/vite@^7.2.4",
+        "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
+      }
+    }
+    </script>
+  </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

@@ -1,22 +1,47 @@
 import React, { useState } from 'react';
-import { supabase, saveSupabaseConfig, getSupabaseConfig } from '../services/supabase';
-import { Loader2, Settings, LogIn, ArrowRight, Database } from 'lucide-react';
+import { supabase } from '../services/supabase';
+import { Loader2, ArrowRight, Mail, Lock } from 'lucide-react';
+
+// Shared Layout for Auth and Settings to ensure consistency
+interface CardLayoutProps {
+  children: React.ReactNode;
+  title: string;
+  subtitle: string;
+}
+
+const CardLayout: React.FC<CardLayoutProps> = ({ children, title, subtitle }) => (
+  <div className="min-h-screen bg-[#F2F2F7] flex flex-col items-center justify-center p-6">
+    {/* Main Card with iOS Shadow and Glass effect */}
+    <div className="bg-white w-full max-w-[380px] rounded-[32px] shadow-ios p-8 space-y-8 animate-scale-in relative border border-white/50 z-10">
+       <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold text-[#1C1C1E] tracking-tight">{title}</h1>
+          <p className="text-[#8E8E93] text-sm font-medium">{subtitle}</p>
+      </div>
+      {children}
+    </div>
+    
+    {/* Footer Text */}
+    <div className="mt-8 text-center z-0">
+       <p className="text-[#AEAEB2] text-xs font-medium tracking-wide">
+           Designed for Career Success
+       </p>
+    </div>
+  </div>
+);
 
 export const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
-  const [showSettings, setShowSettings] = useState(!getSupabaseConfig().url);
-  const [configUrl, setConfigUrl] = useState(getSupabaseConfig().url);
-  const [configKey, setConfigKey] = useState(getSupabaseConfig().key);
   const [message, setMessage] = useState<{type: 'error'|'success', text: string} | null>(null);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Simple check to ensure config is present in code
     if (!supabase) {
-        setMessage({ type: 'error', text: '请先配置数据库连接' });
-        setShowSettings(true);
+        setMessage({ type: 'error', text: '系统错误: 数据库未配置 (请检查代码 services/supabase.ts)' });
         return;
     }
 
@@ -30,7 +55,7 @@ export const Auth = () => {
           password,
         });
         if (error) throw error;
-        setMessage({ type: 'success', text: '注册成功！请查看邮箱确认，或直接登录（如果关闭了邮箱验证）' });
+        setMessage({ type: 'success', text: '注册成功！请查看邮箱确认。' });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -45,103 +70,27 @@ export const Auth = () => {
     }
   };
 
-  const handleSaveSettings = () => {
-      if(!configUrl || !configKey) {
-          setMessage({ type: 'error', text: '请填写完整的 URL 和 Key' });
-          return;
-      }
-      saveSupabaseConfig(configUrl, configKey);
-  };
-
-  if (showSettings) {
-      return (
-        <div className="min-h-screen bg-[#F2F2F7] flex flex-col items-center justify-center p-6">
-            <div className="bg-white w-full max-w-md rounded-3xl shadow-xl p-8 space-y-6 animate-scale-in">
-                <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Database size={32} />
-                    </div>
-                    <h1 className="text-2xl font-bold text-gray-900">连接云端数据库</h1>
-                    <p className="text-gray-500 text-sm mt-2">请输入 Supabase 的项目信息以启用同步功能</p>
-                </div>
-
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Project URL</label>
-                        <input 
-                            type="text" 
-                            value={configUrl}
-                            onChange={e => setConfigUrl(e.target.value)}
-                            className="w-full bg-gray-50 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                            placeholder="https://xyz.supabase.co"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Anon Public Key</label>
-                        <input 
-                            type="password" 
-                            value={configKey}
-                            onChange={e => setConfigKey(e.target.value)}
-                            className="w-full bg-gray-50 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI..."
-                        />
-                    </div>
-                </div>
-                
-                {message && (
-                    <div className={`p-3 rounded-xl text-sm ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                        {message.text}
-                    </div>
-                )}
-
-                <button 
-                    onClick={handleSaveSettings}
-                    className="w-full bg-black text-white font-bold py-3.5 rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
-                >
-                    保存并重启
-                </button>
-                
-                {getSupabaseConfig().url && (
-                    <button onClick={() => setShowSettings(false)} className="w-full text-gray-400 text-sm mt-4 hover:text-gray-600">返回登录</button>
-                )}
-            </div>
-        </div>
-      );
-  }
-
   return (
-    <div className="min-h-screen bg-[#F2F2F7] flex flex-col items-center justify-center p-6">
-      <div className="bg-white w-full max-w-md rounded-3xl shadow-xl p-8 space-y-8 animate-scale-in relative">
-        
-        <button 
-            onClick={() => setShowSettings(true)}
-            className="absolute top-6 right-6 text-gray-300 hover:text-gray-600 transition-colors"
-        >
-            <Settings size={20} />
-        </button>
-
-        <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold text-gray-900">CareerTrack</h1>
-            <p className="text-gray-500">秋招进度管理助手</p>
-        </div>
-
-        <form onSubmit={handleAuth} className="space-y-5">
+    <CardLayout title="CareerTrack" subtitle="秋招进度管理助手">
+        <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-4">
-                <div className="group">
+                <div className="relative group">
+                    <Mail className="absolute left-4 top-3.5 text-[#C7C7CC] group-focus-within:text-blue-500 transition-colors" size={18} />
                     <input
                         type="email"
                         required
-                        className="w-full bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 rounded-xl px-4 py-3.5 text-gray-900 placeholder-gray-400 transition-all outline-none"
+                        className="w-full bg-[#F2F2F7] hover:bg-[#E5E5EA] focus:bg-white border border-transparent focus:border-blue-500/20 rounded-2xl pl-11 pr-4 py-3.5 text-[15px] font-medium outline-none transition-all text-[#1C1C1E] placeholder-[#C7C7CC]"
                         placeholder="邮箱地址"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                     />
                 </div>
-                <div className="group">
+                <div className="relative group">
+                    <Lock className="absolute left-4 top-3.5 text-[#C7C7CC] group-focus-within:text-blue-500 transition-colors" size={18} />
                     <input
                         type="password"
                         required
-                        className="w-full bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 rounded-xl px-4 py-3.5 text-gray-900 placeholder-gray-400 transition-all outline-none"
+                        className="w-full bg-[#F2F2F7] hover:bg-[#E5E5EA] focus:bg-white border border-transparent focus:border-blue-500/20 rounded-2xl pl-11 pr-4 py-3.5 text-[15px] font-medium outline-none transition-all text-[#1C1C1E] placeholder-[#C7C7CC]"
                         placeholder="密码"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -150,28 +99,27 @@ export const Auth = () => {
             </div>
 
             {message && (
-                <div className={`p-3 rounded-xl text-sm flex items-start gap-2 ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                    <div className="mt-0.5 shrink-0">
-                        {message.type === 'error' ? '!' : '✓'}
-                    </div>
+                <div className={`p-3 rounded-xl text-xs font-medium flex items-center justify-center gap-2 animate-fade-in ${message.type === 'error' ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'}`}>
                     {message.text}
                 </div>
             )}
 
-            <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-black text-white font-bold py-3.5 rounded-xl hover:bg-gray-900 hover:scale-[1.02] active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2"
-            >
-                {loading ? (
-                    <Loader2 className="animate-spin" size={20} />
-                ) : (
-                    <>
-                        {isSignUp ? '注册账号' : '登录'}
-                        <ArrowRight size={18} />
-                    </>
-                )}
-            </button>
+            <div className="pt-2">
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-[#000000] text-white font-semibold text-[15px] py-3.5 rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-black/10 flex items-center justify-center gap-2"
+                >
+                    {loading ? (
+                        <Loader2 className="animate-spin" size={18} />
+                    ) : (
+                        <>
+                            {isSignUp ? '注册账号' : '进入应用'}
+                            {!isSignUp && <ArrowRight size={18} />}
+                        </>
+                    )}
+                </button>
+            </div>
         </form>
 
         <div className="text-center">
@@ -181,12 +129,11 @@ export const Auth = () => {
                     setIsSignUp(!isSignUp);
                     setMessage(null);
                 }}
-                className="text-sm text-gray-500 font-medium hover:text-blue-600 transition-colors"
+                className="text-xs text-[#8E8E93] font-medium hover:text-blue-500 transition-colors"
             >
                 {isSignUp ? '已有账号？去登录' : '没有账号？去注册'}
             </button>
         </div>
-      </div>
-    </div>
+    </CardLayout>
   );
 };

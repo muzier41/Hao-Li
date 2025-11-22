@@ -10,8 +10,6 @@ import { MOCK_INITIAL_DATA } from './constants';
 import { supabase } from './services/supabase';
 import { LogOut, Loader2 } from 'lucide-react';
 
-const generateId = () => Math.random().toString(36).substring(2, 9);
-
 const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,15 +69,15 @@ const App: React.FC = () => {
           return;
       }
 
-      // Initial Seed Logic: If DB is empty, seed with Constants data (Migration)
+      // Initial Seed Logic: If DB is empty, seed with Constants data
       if ((!appsData || appsData.length === 0) && MOCK_INITIAL_DATA.length > 0) {
-          console.log('Seeding initial data...');
+          console.log('Database empty. Seeding initial data...');
           await seedInitialData(userId);
+          // seedInitialData will update state, so we don't need to set it here
           setIsLoading(false);
-          return; // Seed function calls fetchData again or sets state
+          return; 
       }
 
-      // Transform data if needed (Supabase returns dates as strings, which matches our interface)
       setApplications(appsData as Application[]);
       setEvents(eventsData as JobEvent[]);
       setIsLoading(false);
@@ -88,31 +86,9 @@ const App: React.FC = () => {
   const seedInitialData = async (userId: string) => {
       if(!supabase) return;
 
-      // Prepare MOCK data for insertion
-      // 1. Insert Applications
-      const appsToInsert = MOCK_INITIAL_DATA.map(app => ({
-          id: app.id, // Keep ID to link events if we had mock events
-          user_id: userId,
-          company: app.company,
-          position: app.position,
-          apply_date: app.applyDate, // Map to snake_case for DB if needed, but let's assume mapped in constants or we adjust keys
-          // Actually, let's adjust the object to match snake_case DB columns usually, 
-          // BUT to keep it simple, I will assume we used camelCase in DB columns or map them here.
-          // Let's map to the interface keys which we will use as DB columns for simplicity in this context,
-          // OR better: Clean map.
-          industry: app.industry,
-          company_type: app.companyType,
-          status: app.status,
-          note: app.note,
-          created_at: new Date().toISOString()
-      }));
-      
-      // Since MOCK_INITIAL_DATA uses camelCase keys and we want to insert them.
-      // I will define the DB columns to match camelCase in the SQL script to avoid mapping headaches in JS.
-      // Correction: SQL standards usually prefer snake_case. I will map them here.
-      
-      const mappedApps = MOCK_INITIAL_DATA.map(app => ({
-          id: app.id,
+      // IMPORTANT: Exclude 'id' from the insert object. 
+      // Let the database generate a valid UUID for the primary key.
+      const appsToInsert = MOCK_INITIAL_DATA.map(({ id, ...app }) => ({
           user_id: userId,
           company: app.company,
           position: app.position,
@@ -123,16 +99,17 @@ const App: React.FC = () => {
           note: app.note
       }));
 
-      // We don't have events in MOCK_INITIAL_DATA constants for now, but if we did:
-      // const mappedEvents = ...
-
-      const { error } = await supabase.from('applications').insert(mappedApps);
+      const { data, error } = await supabase
+        .from('applications')
+        .insert(appsToInsert)
+        .select(); // Use select() to return the inserted rows with their new UUIDs
       
-      if (!error) {
-          setApplications(mappedApps as Application[]);
-          // Generate some default events from the status? (Optional, skipping for now to keep clean)
-      } else {
-          console.error("Seeding error", error);
+      if (error) {
+          console.error("Seeding error:", JSON.stringify(error, null, 2));
+          alert("初始化数据失败，请查看控制台错误详情。");
+      } else if (data) {
+          console.log("Seeding successful!", data.length, "records inserted.");
+          setApplications(data as Application[]);
       }
   };
 
@@ -158,15 +135,15 @@ const App: React.FC = () => {
             })
             .eq('id', editingApp.id);
         
-        if (error) { alert('保存失败'); return; }
+        if (error) { 
+            alert('保存失败: ' + error.message); 
+            return; 
+        }
         
         setApplications(prev => prev.map(a => a.id === editingApp.id ? { ...appData, id: editingApp.id, user_id: userId } : a));
 
     } else {
         // Insert
-        // Use a real UUID if possible, or let Supabase generate it. 
-        // Since we need the ID for events immediately, we can generate one or let DB return it.
-        // Let's use random string for simplicity compatible with existing logic, OR better: let Supabase return it.
         const { data, error } = await supabase
             .from('applications')
             .insert([{
@@ -181,10 +158,13 @@ const App: React.FC = () => {
             }])
             .select();
 
-        if (error || !data) { alert('创建失败'); return; }
+        if (error || !data) { 
+            alert('创建失败: ' + (error?.message || '未知错误')); 
+            return; 
+        }
         savedAppId = data[0].id;
         
-        const newApp = { ...data[0] } as Application; // valid enough
+        const newApp = { ...data[0] } as Application;
         setApplications(prev => [newApp, ...prev]);
     }
 
@@ -231,9 +211,9 @@ const App: React.FC = () => {
     const { error } = await supabase.from('applications').delete().eq('id', id);
     if (!error) {
         setApplications(prev => prev.filter(a => a.id !== id));
-        setEvents(prev => prev.filter(e => e.applicationId !== id)); // Cascading delete usually handled by DB, but updating local state here
+        setEvents(prev => prev.filter(e => e.applicationId !== id)); 
     } else {
-        alert("删除失败");
+        alert("删除失败: " + error.message);
     }
   };
 
@@ -259,6 +239,7 @@ const App: React.FC = () => {
       return (
           <div className="h-screen w-full flex items-center justify-center bg-[#F2F2F7]">
               <Loader2 className="animate-spin text-gray-400" size={32} />
+              <span className="ml-2 text-gray-500 text-sm font-medium">加载中...</span>
           </div>
       );
   }
