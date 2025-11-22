@@ -209,12 +209,14 @@ const App: React.FC = () => {
         .from('events')
         .update({
             start: updatedEvent.start,
-            isCompleted: updatedEvent.isCompleted
+            end: updatedEvent.end,
+            isCompleted: updatedEvent.isCompleted ?? false
         })
         .eq('id', updatedEvent.id);
 
       if (error) {
-          alert("更新事件失败");
+          console.error("Event update failed:", error);
+          alert("更新事件失败: " + error.message);
           // Revert
           setEvents(prev => prev.map(e => e.id === updatedEvent.id ? events.find(ev => ev.id === updatedEvent.id)! : e));
       }
