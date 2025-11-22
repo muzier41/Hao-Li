@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>CareerTrack - 秋招助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['-apple-system', 'BlinkMacSystemFont', 'PingFang SC', 'Hiragino Sans GB', 'Inter', 'Microsoft YaHei', 'sans-serif'],
+            },
+            colors: {
+              apple: {
+                bg: '#F2F2F7',
+                card: '#FFFFFF',
+                blue: '#007AFF',
+                red: '#FF3B30',
+                green: '#34C759',
+                orange: '#FF9500',
+                purple: '#AF52DE',
+                gray: '#8E8E93',
+                grayLight: '#E5E5EA',
+              }
+            },
+            boxShadow: {
+              'glass': '0 8px 32px rgba(0, 0, 0, 0.08)',
+              'ios': '0 4px 20px rgba(0, 0, 0, 0.04)',
+              'nav': '0 -4px 20px rgba(0, 0, 0, 0.03)',
+            },
+            animation: {
+              'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+              'scale-in': 'scaleIn 0.2s ease-out',
+              'fade-in': 'fadeIn 0.3s ease-out',
+            },
+            keyframes: {
+              slideUp: {
+                '0%': { transform: 'translateY(100%)', opacity: '0' },
+                '100%': { transform: 'translateY(0)', opacity: '1' },
+              },
+              scaleIn: {
+                '0%': { transform: 'scale(0.95)', opacity: '0' },
+                '100%': { transform: 'scale(1)', opacity: '1' },
+              },
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #F2F2F7;
+        color: #000000;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow: hidden; /* App-like behavior */
+      }
+      /* Custom Scrollbar - Minimalist */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.1);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0,0,0,0.2);
+      }
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 0.5px solid rgba(0, 0, 0, 0.05);
+      }
+      .ios-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "uuid": "https://aistudiocdn.com/uuid@^13.0.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.4.1",
+    "date-fns/locale": "https://aistudiocdn.com/date-fns@^4.1.0/locale",
+    "date-fns/": "https://aistudiocdn.com/date-fns@^4.1.0/"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
