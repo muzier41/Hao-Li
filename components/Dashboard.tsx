@@ -2,8 +2,11 @@ import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area } from 'recharts';
 import { Application, ApplicationStatus, CompanyType, DashboardStats } from '../types';
 import { STATUS_COLORS, COMPANY_TYPE_COLORS, COMPANY_TYPE_LABELS_CN, STATUS_LABELS_CN } from '../constants';
-import { format, startOfWeek, addDays, parseISO, differenceInDays } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import format from 'date-fns/format';
+import startOfWeek from 'date-fns/startOfWeek';
+import addDays from 'date-fns/addDays';
+import parseISO from 'date-fns/parseISO';
+import differenceInDays from 'date-fns/differenceInDays';
 
 interface DashboardProps {
   applications: Application[];
