@@ -73,7 +73,6 @@ const App: React.FC = () => {
       if ((!appsData || appsData.length === 0) && MOCK_INITIAL_DATA.length > 0) {
           console.log('Database empty. Seeding initial data...');
           await seedInitialData(userId);
-          // seedInitialData will update state, so we don't need to set it here
           setIsLoading(false);
           return; 
       }
@@ -86,8 +85,6 @@ const App: React.FC = () => {
   const seedInitialData = async (userId: string) => {
       if(!supabase) return;
 
-      // IMPORTANT: Exclude 'id' from the insert object. 
-      // Let the database generate a valid UUID for the primary key.
       const appsToInsert = MOCK_INITIAL_DATA.map(({ id, ...app }) => ({
           user_id: userId,
           company: app.company,
@@ -102,7 +99,7 @@ const App: React.FC = () => {
       const { data, error } = await supabase
         .from('applications')
         .insert(appsToInsert)
-        .select(); // Use select() to return the inserted rows with their new UUIDs
+        .select(); 
       
       if (error) {
           console.error("Seeding error:", JSON.stringify(error, null, 2));
@@ -169,12 +166,10 @@ const App: React.FC = () => {
     }
 
     // SAVE EVENTS
-    // Strategy: Delete all events for this app and recreate active ones (simplest sync)
+    // Simple sync: Delete old, insert new
     if (savedAppId) {
-        // 1. Delete existing
         await supabase.from('events').delete().eq('applicationId', savedAppId);
         
-        // 2. Insert new
         if (newEvents.length > 0) {
             const eventsToInsert = newEvents.map(e => ({
                 user_id: userId,
@@ -182,13 +177,13 @@ const App: React.FC = () => {
                 title: e.title,
                 type: e.type,
                 start: e.start,
-                end: e.end
+                end: e.end,
+                isCompleted: e.isCompleted || false
             }));
             
             const { data: savedEvents, error: eventError } = await supabase.from('events').insert(eventsToInsert).select();
             if (eventError) console.error(eventError);
 
-            // Update Local State
             if (savedEvents) {
                 setEvents(prev => [
                     ...prev.filter(e => e.applicationId !== savedAppId),
@@ -202,6 +197,27 @@ const App: React.FC = () => {
 
     setIsFormOpen(false);
     setEditingApp(undefined);
+  };
+
+  const handleEventUpdate = async (updatedEvent: JobEvent) => {
+      if (!supabase) return;
+      
+      // Optimistic update
+      setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+
+      const { error } = await supabase
+        .from('events')
+        .update({
+            start: updatedEvent.start,
+            isCompleted: updatedEvent.isCompleted
+        })
+        .eq('id', updatedEvent.id);
+
+      if (error) {
+          alert("更新事件失败");
+          // Revert
+          setEvents(prev => prev.map(e => e.id === updatedEvent.id ? events.find(ev => ev.id === updatedEvent.id)! : e));
+      }
   };
 
   const handleDeleteApplication = async (id: string) => {
@@ -261,10 +277,7 @@ const App: React.FC = () => {
                 <CalendarView 
                     events={events} 
                     applications={applications}
-                    onEventClick={(e) => {
-                        const app = applications.find(a => a.id === e.applicationId);
-                        if (app) handleEditApplication(app);
-                    }} 
+                    onEventUpdate={handleEventUpdate}
                 />
             )}
             {activeTab === 'applications' && (

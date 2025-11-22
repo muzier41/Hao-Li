@@ -19,10 +19,17 @@ export const classifyCompany = async (companyName: string): Promise<{ industry: 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `Identify the company "${companyName}".
-      1. Provide the Industry in Simplified Chinese (short string, e.g., "互联网", "金融", "新能源").
-      2. Provide the Company Type matching one of these exact English keys: 'State Owned', 'Foreign', 'Internet', 'Consulting', 'Startup', 'Other'.
-      Return JSON.`,
+      contents: `Analyze the company "${companyName}".
+      1. Provide the Industry in Simplified Chinese (short string, max 4 chars, e.g., "互联网", "金融", "新能源").
+      2. Classify the Company Nature/Type into EXACTLY one of these English keys:
+         - 'State Owned' (for SOEs, Central Enterprises like China Mobile, grid, banks)
+         - 'Foreign' (for foreign companies like Microsoft, Tesla, P&G)
+         - 'Internet' (for tech giants like Alibaba, Tencent, ByteDance)
+         - 'Consulting' (for Big 4, McKinsey, etc.)
+         - 'Startup' (for small financing rounds)
+         - 'Other' (if unsure)
+      
+      Return JSON only.`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {

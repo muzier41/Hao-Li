@@ -3,7 +3,7 @@ import { Application, ApplicationStatus, CompanyType, JobEvent, EventType } from
 import { classifyCompany } from '../services/geminiService';
 import { STATUS_LABELS_CN, COMPANY_TYPE_LABELS_CN, EVENT_TYPE_LABELS_CN, EVENT_TYPE_COLORS } from '../constants';
 import { X, Loader2, Sparkles, Trash2, CalendarClock, Plus, Clock, Video, FileText, ArrowRight } from 'lucide-react';
-import { format, addHours } from 'date-fns';
+import { format, addHours, addDays, parseISO } from 'date-fns';
 
 interface ApplicationFormProps {
   initialData?: Application;
@@ -29,6 +29,10 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ initialData, e
   // Events State
   const [localEvents, setLocalEvents] = useState<JobEvent[]>([]);
   const [isAddingEvent, setIsAddingEvent] = useState(false);
+  
+  // Duration state for range events (default 3 days)
+  const [durationDays, setDurationDays] = useState<number>(3);
+
   const [newEventData, setNewEventData] = useState<{
     type: EventType;
     title: string;
@@ -103,6 +107,7 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ initialData, e
       start: format(now, "yyyy-MM-dd'T'HH:mm"),
       end: format(addHours(now, 1), "yyyy-MM-dd'T'HH:mm"),
     });
+    setDurationDays(3);
   };
 
   const handleDeleteEvent = (eventId: string) => {
@@ -144,10 +149,10 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ initialData, e
                       <button 
                           onClick={handleAutoClassify}
                           disabled={isClassifying || !formData.company}
-                          className="bg-gray-50 text-apple-purple px-4 py-2 rounded-xl font-medium flex items-center gap-2 hover:bg-purple-50 transition-all active:scale-95 disabled:opacity-50"
+                          className="bg-gray-50 text-apple-purple px-4 py-2 rounded-xl font-medium flex items-center gap-2 hover:bg-purple-50 transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
                       >
                           {isClassifying ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-                          <span className="text-sm hidden sm:inline">AI识别</span>
+                          <span className="text-xs sm:text-sm">AI 识别</span>
                       </button>
                   </div>
               </div>
@@ -198,7 +203,7 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ initialData, e
                         className="w-full rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 border-transparent p-2.5 text-sm"
                         value={formData.industry}
                         onChange={e => setFormData({...formData, industry: e.target.value})}
-                        placeholder="自动生成"
+                        placeholder="AI 自动生成"
                     />
                 </div>
                 <div className="space-y-1.5">
@@ -293,7 +298,10 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ initialData, e
                                 面试
                             </button>
                             <button
-                                onClick={() => setNewEventData({...newEventData, type: EventType.TestOrAI, title: '笔试', end: format(addHours(new Date(newEventData.start), 1), "yyyy-MM-dd'T'HH:mm")})}
+                                onClick={() => {
+                                    const end = format(addDays(new Date(newEventData.start), durationDays), "yyyy-MM-dd'T'HH:mm");
+                                    setNewEventData({...newEventData, type: EventType.TestOrAI, title: '笔试', end});
+                                }}
                                 className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
                                     newEventData.type === EventType.TestOrAI
                                     ? 'bg-white text-purple-600 shadow-sm'
@@ -326,22 +334,40 @@ export const ApplicationForm: React.FC<ApplicationFormProps> = ({ initialData, e
                                 className="w-full text-sm p-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none bg-white"
                                 value={newEventData.start}
                                 onChange={e => {
-                                    // If range, auto-update end time to keep duration if needed, or just let user pick
-                                    // Simple UX: just update start
-                                    setNewEventData({...newEventData, start: e.target.value})
+                                    const newStart = e.target.value;
+                                    // If range, update end time based on existing duration days
+                                    if (newEventData.type === EventType.TestOrAI) {
+                                        const newEnd = format(addDays(parseISO(newStart), durationDays), "yyyy-MM-dd'T'HH:mm");
+                                        setNewEventData({...newEventData, start: newStart, end: newEnd})
+                                    } else {
+                                        setNewEventData({...newEventData, start: newStart})
+                                    }
                                 }}
                              />
                           </div>
                           
                           {newEventData.type === EventType.TestOrAI && (
                               <div className="animate-fade-in">
-                                 <div className="text-xs font-bold text-gray-500 mb-1">结束时间</div>
-                                 <input 
-                                    type="datetime-local"
-                                    className="w-full text-sm p-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none bg-white"
-                                    value={newEventData.end}
-                                    onChange={e => setNewEventData({...newEventData, end: e.target.value})}
-                                 />
+                                 <div className="text-xs font-bold text-gray-500 mb-1">持续天数</div>
+                                 <div className="relative">
+                                    <input 
+                                        type="number"
+                                        min="1"
+                                        className="w-full text-sm p-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none bg-white"
+                                        value={durationDays}
+                                        onChange={e => {
+                                            const days = parseInt(e.target.value) || 1;
+                                            setDurationDays(days);
+                                            // Update End Date
+                                            const newEnd = format(addDays(parseISO(newEventData.start), days), "yyyy-MM-dd'T'HH:mm");
+                                            setNewEventData({...newEventData, end: newEnd});
+                                        }}
+                                    />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-bold pointer-events-none">天</span>
+                                 </div>
+                                 <div className="text-[10px] text-gray-400 mt-1 text-right">
+                                     截止于: {format(parseISO(newEventData.end), 'MM月dd日 HH:mm')}
+                                 </div>
                               </div>
                           )}
                       </div>

@@ -10,10 +10,10 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, onNewApplication }) => {
   return (
-    <div className="flex flex-col h-screen w-full bg-[#F2F2F7] text-gray-900 font-sans overflow-hidden">
+    <div className="flex flex-col min-h-[100dvh] w-full bg-[#F2F2F7] text-gray-900 font-sans overflow-hidden pt-safe">
       
       {/* Main Content Area */}
-      <main className="flex-1 h-full overflow-y-auto overflow-x-hidden scroll-smooth pb-24">
+      <main className="flex-1 w-full h-full overflow-y-auto overflow-x-hidden scroll-smooth pb-24">
         <div className="p-4 md:p-6 max-w-3xl mx-auto min-h-full">
           {children}
         </div>

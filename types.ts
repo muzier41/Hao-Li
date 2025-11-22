@@ -31,6 +31,7 @@ export interface JobEvent {
   type: EventType;
   start: string; // ISO Date string
   end?: string; // ISO Date string, optional for point events
+  isCompleted?: boolean; // New field for checkbox status
 }
 
 export interface Application {

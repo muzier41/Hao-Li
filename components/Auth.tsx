@@ -39,9 +39,8 @@ export const Auth = () => {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simple check to ensure config is present in code
     if (!supabase) {
-        setMessage({ type: 'error', text: '系统错误: 数据库未配置 (请检查代码 services/supabase.ts)' });
+        setMessage({ type: 'error', text: '系统错误: 数据库未配置' });
         return;
     }
 
@@ -55,7 +54,14 @@ export const Auth = () => {
           password,
         });
         if (error) throw error;
-        setMessage({ type: 'success', text: '注册成功！请查看邮箱确认。' });
+        setMessage({ type: 'success', text: '注册成功！正在切换至登录...' });
+        
+        // Automatically switch to login view after short delay
+        setTimeout(() => {
+            setIsSignUp(false);
+            setMessage({ type: 'success', text: '注册成功，请登录' });
+        }, 1500);
+
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
