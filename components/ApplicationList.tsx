@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { Application, ApplicationStatus } from '../types';
 import { STATUS_COLORS, COMPANY_TYPE_COLORS, STATUS_LABELS_CN, COMPANY_TYPE_LABELS_CN } from '../constants';
 import { Search, Plus, ChevronRight, Filter, MoreHorizontal } from 'lucide-react';
-import format from 'date-fns/format';
-import parseISO from 'date-fns/parseISO';
-import zhCN from 'date-fns/locale/zh-CN';
+import { format, parseISO } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 
 interface ApplicationListProps {
   applications: Application[];
