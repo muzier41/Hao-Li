@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { CompanyType } from "../types";
 
@@ -22,12 +23,16 @@ export const classifyCompany = async (companyName: string): Promise<{ industry: 
       contents: `Analyze the company "${companyName}".
       1. Provide the Industry in Simplified Chinese (short string, max 4 chars, e.g., "互联网", "金融", "新能源").
       2. Classify the Company Nature/Type into EXACTLY one of these English keys:
-         - 'State Owned' (for SOEs, Central Enterprises like China Mobile, grid, banks)
-         - 'Foreign' (for foreign companies like Microsoft, Tesla, P&G)
-         - 'Internet' (for tech giants like Alibaba, Tencent, ByteDance)
-         - 'Consulting' (for Big 4, McKinsey, etc.)
-         - 'Startup' (for small financing rounds)
-         - 'Other' (if unsure)
+         - 'State Owned' (SOEs, Central Enterprises, Government affiliated)
+         - 'Foreign' (MNCs, Foreign invested)
+         - 'Internet' (Tech giants, Pure software/internet companies like Tencent, ByteDance)
+         - 'Private' (Established private companies, NOT pure internet, e.g., Huawei, BYD, Vanke, Haidilao)
+         - 'Financial' (Banks, Securities, Funds, Insurance)
+         - 'Manufacturing' (Hard tech, Automotive, Hardware, Consumer goods)
+         - 'Education' (Universities, EdTech, Research Institutes)
+         - 'Consulting' (Professional services, Agencies, Big 4)
+         - 'Startup' (Early stage, Financing Series A/B/C)
+         - 'Other'
       
       Return JSON only.`,
       config: {
@@ -39,7 +44,8 @@ export const classifyCompany = async (companyName: string): Promise<{ industry: 
             companyType: { 
               type: Type.STRING, 
               enum: [
-                'State Owned', 'Foreign', 'Internet', 'Consulting', 'Startup', 'Other'
+                'State Owned', 'Foreign', 'Internet', 'Private', 'Financial', 
+                'Manufacturing', 'Education', 'Consulting', 'Startup', 'Other'
               ] 
             },
           },

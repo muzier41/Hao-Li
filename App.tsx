@@ -77,14 +77,19 @@ const App: React.FC = () => {
           return; 
       }
 
-      setApplications(appsData as Application[]);
+      // Map DB snake_case -> Frontend camelCase
+      const formattedApps = (appsData || []).map((app: any) => ({
+          ...app,
+          applyDate: app.apply_date || app.applyDate, // Support both for safety
+          companyType: app.company_type || app.companyType,
+      }));
+
+      setApplications(formattedApps as Application[]);
       
-      // Robust mapping for events to handle snake_case (DB) <-> camelCase (Frontend)
       const formattedEvents = (eventsData || []).map((e: any) => ({
           ...e,
-          // Handle potential column name differences
-          applicationId: e.application_id || e.applicationId,
-          isCompleted: e.is_completed || e.isCompleted
+          applicationId: e.application_id ?? e.applicationId,
+          isCompleted: e.is_completed ?? e.isCompleted ?? false
       }));
       setEvents(formattedEvents as JobEvent[]);
       
@@ -94,13 +99,14 @@ const App: React.FC = () => {
   const seedInitialData = async (userId: string) => {
       if(!supabase) return;
 
+      // Map Frontend camelCase -> DB snake_case for Insert
       const appsToInsert = MOCK_INITIAL_DATA.map(({ id, ...app }) => ({
           user_id: userId,
           company: app.company,
           position: app.position,
-          applyDate: app.applyDate,
+          apply_date: app.applyDate,
           industry: app.industry,
-          companyType: app.companyType,
+          company_type: app.companyType,
           status: app.status,
           note: app.note
       }));
@@ -115,7 +121,13 @@ const App: React.FC = () => {
           alert("初始化数据失败，请查看控制台错误详情。");
       } else if (data) {
           console.log("Seeding successful!", data.length, "records inserted.");
-          setApplications(data as Application[]);
+          // Map back for local state
+          const mappedData = data.map((app: any) => ({
+              ...app,
+              applyDate: app.apply_date,
+              companyType: app.company_type
+          }));
+          setApplications(mappedData as Application[]);
       }
   };
 
@@ -123,45 +135,40 @@ const App: React.FC = () => {
     if (!supabase || !session) return;
     const userId = session.user.id;
 
+    // Prepare Payload (Map to snake_case)
+    const appPayload = {
+        user_id: userId,
+        company: appData.company,
+        position: appData.position,
+        apply_date: appData.applyDate,
+        status: appData.status,
+        industry: appData.industry,
+        company_type: appData.companyType,
+        note: appData.note
+    };
+
     // SAVE APPLICATION
     let savedAppId = editingApp?.id;
+    let savedAppData = null;
     
     if (editingApp) {
         // Update
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('applications')
-            .update({
-                company: appData.company,
-                position: appData.position,
-                applyDate: appData.applyDate,
-                status: appData.status,
-                industry: appData.industry,
-                companyType: appData.companyType,
-                note: appData.note
-            })
-            .eq('id', editingApp.id);
+            .update(appPayload)
+            .eq('id', editingApp.id)
+            .select();
         
         if (error) { 
             alert('保存失败: ' + error.message); 
             return; 
         }
-        
-        setApplications(prev => prev.map(a => a.id === editingApp.id ? { ...appData, id: editingApp.id, user_id: userId } : a));
-
+        savedAppData = data[0];
     } else {
         // Insert
         const { data, error } = await supabase
             .from('applications')
-            .insert([{
-                user_id: userId,
-                company: appData.company,
-                position: appData.position,
-                applyDate: appData.applyDate,
-                status: appData.status,
-                industry: appData.industry,
-                companyType: appData.companyType,
-                note: appData.note
-            }])
+            .insert([appPayload])
             .select();
 
         if (error || !data) { 
@@ -169,45 +176,75 @@ const App: React.FC = () => {
             return; 
         }
         savedAppId = data[0].id;
-        
-        const newApp = { ...data[0] } as Application;
-        setApplications(prev => [newApp, ...prev]);
+        savedAppData = data[0];
+    }
+
+    // Update local applications state immediately
+    if (savedAppData) {
+        const mappedApp = {
+            ...savedAppData,
+            applyDate: savedAppData.apply_date,
+            companyType: savedAppData.company_type
+        };
+
+        if (editingApp) {
+            setApplications(prev => prev.map(a => a.id === editingApp.id ? mappedApp : a));
+        } else {
+            setApplications(prev => [mappedApp, ...prev]);
+        }
     }
 
     // SAVE EVENTS
     if (savedAppId) {
-        // Delete existing events for this app using standard snake_case column
-        // Try deleting by both potential keys to be safe
-        await supabase.from('events').delete().or(`application_id.eq.${savedAppId},applicationId.eq.${savedAppId}`);
+        // 1. Delete existing events
+        const { error: deleteError } = await supabase
+            .from('events')
+            .delete()
+            .eq('application_id', savedAppId);
+
+        if (deleteError) {
+             console.error("Delete events failed:", deleteError);
+             // Try legacy deletion just in case
+             await supabase.from('events').delete().eq('applicationId', savedAppId);
+        }
         
+        // 2. Insert new events
         if (newEvents.length > 0) {
-            const eventsToInsert = newEvents.map(e => ({
+            const eventsSnake = newEvents.map(e => ({
                 user_id: userId,
-                application_id: savedAppId, // Store as snake_case
+                application_id: savedAppId,
                 title: e.title,
                 type: e.type,
                 start: e.start,
-                end: e.end,
-                is_completed: e.isCompleted || false // Store as snake_case
+                end: e.end ? e.end : null,
+                is_completed: e.isCompleted || false
             }));
             
-            const { data: savedEvents, error: eventError } = await supabase.from('events').insert(eventsToInsert).select();
-            if (eventError) console.error("Event save error:", eventError);
+            const { data: savedEvents, error: eventError } = await supabase
+                .from('events')
+                .insert(eventsSnake)
+                .select();
 
-            if (savedEvents) {
-                // Map back to frontend model
-                const mappedSavedEvents = savedEvents.map((e: any) => ({
+            if (eventError) {
+                console.error("Event save error details:", eventError);
+                const errorMessage = eventError.message || JSON.stringify(eventError);
+                alert(`保存日程失败: ${errorMessage}`);
+            } else if (savedEvents) {
+                // Update local events state
+                // Remove old events for this app
+                const filteredEvents = events.filter(e => e.applicationId !== savedAppId);
+                
+                // Map new DB events to frontend
+                const mappedNewEvents = savedEvents.map((e: any) => ({
                     ...e,
-                    applicationId: e.application_id || e.applicationId,
-                    isCompleted: e.is_completed || e.isCompleted
+                    applicationId: e.application_id,
+                    isCompleted: e.is_completed
                 }));
 
-                setEvents(prev => [
-                    ...prev.filter(e => e.applicationId !== savedAppId),
-                    ...(mappedSavedEvents as JobEvent[])
-                ]);
+                setEvents([...filteredEvents, ...mappedNewEvents]);
             }
         } else {
+             // If no events, just remove old ones locally
              setEvents(prev => prev.filter(e => e.applicationId !== savedAppId));
         }
     }
@@ -219,26 +256,29 @@ const App: React.FC = () => {
   const handleEventUpdate = async (updatedEvent: JobEvent) => {
       if (!supabase) return;
       
+      const originalEvent = events.find(e => e.id === updatedEvent.id);
+
       // Optimistic update for UI
       setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
 
-      // Map frontend 'isCompleted' to DB 'is_completed'
+      // Try update with snake_case
       const { error } = await supabase
         .from('events')
         .update({
             start: updatedEvent.start,
-            end: updatedEvent.end,
-            is_completed: updatedEvent.isCompleted
+            end: updatedEvent.end ?? null,
+            is_completed: updatedEvent.isCompleted ?? false
         })
         .eq('id', updatedEvent.id);
 
       if (error) {
           console.error("Event update failed:", error);
-          // Provide meaningful error message
-          alert("更新事件失败: " + (error.message || JSON.stringify(error)));
+          alert(`更新失败: ${error.message || '请重试'}`);
           
           // Revert on error
-          setEvents(prev => prev.map(e => e.id === updatedEvent.id ? events.find(ev => ev.id === updatedEvent.id)! : e));
+          if (originalEvent) {
+             setEvents(prev => prev.map(e => e.id === updatedEvent.id ? originalEvent : e));
+          }
       }
   };
 

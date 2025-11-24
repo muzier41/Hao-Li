@@ -13,12 +13,16 @@ export const STATUS_COLORS: Record<ApplicationStatus, string> = {
 };
 
 export const COMPANY_TYPE_COLORS: Record<CompanyType, string> = {
-  [CompanyType.Internet]: '#007AFF',
-  [CompanyType.StateOwned]: '#FF3B30',
-  [CompanyType.Foreign]: '#AF52DE',
-  [CompanyType.Consulting]: '#FF9500',
-  [CompanyType.Startup]: '#34C759',
-  [CompanyType.Other]: '#8E8E93',
+  [CompanyType.Internet]: '#007AFF', // Blue
+  [CompanyType.StateOwned]: '#FF3B30', // Red
+  [CompanyType.Foreign]: '#AF52DE', // Purple
+  [CompanyType.Private]: '#34C759', // Green (General Private)
+  [CompanyType.Financial]: '#FF9500', // Orange (Finance)
+  [CompanyType.Manufacturing]: '#5856D6', // Indigo (Manufacturing)
+  [CompanyType.Education]: '#FF2D55', // Pink (Education)
+  [CompanyType.Consulting]: '#A2845E', // Brown (Consulting)
+  [CompanyType.Startup]: '#30B0C7', // Teal (Startup)
+  [CompanyType.Other]: '#8E8E93', // Gray
 };
 
 export const EVENT_TYPE_COLORS: Record<EventType, string> = {
@@ -40,11 +44,15 @@ export const STATUS_LABELS_CN: Record<ApplicationStatus, string> = {
 };
 
 export const COMPANY_TYPE_LABELS_CN: Record<CompanyType, string> = {
-  [CompanyType.StateOwned]: '国企',
+  [CompanyType.StateOwned]: '国企/央企',
   [CompanyType.Foreign]: '外企',
   [CompanyType.Internet]: '互联网',
-  [CompanyType.Consulting]: '咨询',
-  [CompanyType.Startup]: '初创',
+  [CompanyType.Private]: '民营企业',
+  [CompanyType.Financial]: '金融/银行',
+  [CompanyType.Manufacturing]: '制造/实业',
+  [CompanyType.Education]: '教育/科研',
+  [CompanyType.Consulting]: '咨询/服务',
+  [CompanyType.Startup]: '初创公司',
   [CompanyType.Other]: '其他',
 };
 

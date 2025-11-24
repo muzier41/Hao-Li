@@ -1,3 +1,4 @@
+
 export enum ApplicationStatus {
   Applied = 'Applied',
   WrittenTest = 'Written Test',
@@ -13,6 +14,10 @@ export enum CompanyType {
   StateOwned = 'State Owned',
   Foreign = 'Foreign',
   Internet = 'Internet',
+  Private = 'Private',       // New: General Private Enterprise (e.g., Huawei, BYD)
+  Financial = 'Financial',   // New: Banks, Securities, Insurance
+  Manufacturing = 'Manufacturing', // New: Industry, Hard Tech
+  Education = 'Education',   // New: Universities, Research Institutes
   Consulting = 'Consulting',
   Startup = 'Startup',
   Other = 'Other',

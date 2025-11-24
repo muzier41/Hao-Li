@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, AreaChart, Area } from 'recharts';
 import { Application, ApplicationStatus, DashboardStats } from '../types';
@@ -10,6 +11,20 @@ interface DashboardProps {
 }
 
 type GoalPeriod = 'daily' | 'weekly' | 'monthly';
+
+// Expanded palette for more types
+const CHART_COLORS = [
+    '#007AFF', // Blue
+    '#34C759', // Green
+    '#FF9500', // Orange
+    '#AF52DE', // Purple
+    '#FF3B30', // Red
+    '#5856D6', // Indigo
+    '#FF2D55', // Pink
+    '#30B0C7', // Teal
+    '#A2845E', // Brown
+    '#8E8E93'  // Gray
+];
 
 // Component for the Details Modal
 const StatsDetailModal: React.FC<{
@@ -318,7 +333,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ applications }) => {
                             dataKey="value"
                         >
                             {stats.byIndustry.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={[ '#007AFF', '#34C759', '#FF9500', '#AF52DE', '#FF3B30' ][index % 5]} />
+                                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                             ))}
                         </Pie>
                         <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)'}} />
@@ -331,7 +346,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ applications }) => {
             <div className="flex flex-wrap justify-center gap-2 mt-4">
                 {stats.byIndustry.slice(0, 5).map((entry, index) => (
                     <div key={index} className="flex items-center gap-1.5 text-[10px] text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: [ '#007AFF', '#34C759', '#FF9500', '#AF52DE', '#FF3B30' ][index % 5] }} />
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />
                         {entry.name}
                     </div>
                 ))}
